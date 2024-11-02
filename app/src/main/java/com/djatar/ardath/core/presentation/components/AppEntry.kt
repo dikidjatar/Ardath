@@ -28,7 +28,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.djatar.ardath.core.presentation.common.animatedComposable
-import com.djatar.ardath.core.presentation.common.fadeThroughComposable
 import com.djatar.ardath.core.presentation.components.utils.Screen
 import com.djatar.ardath.feature.presentation.auth.signin.SignInScreen
 import com.djatar.ardath.feature.presentation.auth.signup.SignUpScreen
@@ -106,7 +105,7 @@ fun AppEntry(
                     onSignUpSuccess = {}
                 )
             }
-            fadeThroughComposable(Screen.ChatsScreen()) {
+            animatedComposable(Screen.ChatsScreen()) {
 
                 val viewModel = hiltViewModel<ChatViewModel>().also {
                     it.loadChats()
@@ -165,7 +164,7 @@ fun AppEntry(
                 )
             }
 
-            fadeThroughComposable(Screen.ProfileScreen()) { backStackEntry ->
+            animatedComposable(Screen.ProfileScreen()) { backStackEntry ->
                 val myUserId = remember(backStackEntry) { Firebase.auth.currentUser?.uid }!!
 
                 ProfileScreen(
@@ -183,7 +182,7 @@ fun AppEntry(
                 }
             }
 
-            fadeThroughComposable(
+            animatedComposable(
                 route = Screen.ProfileScreen.withId(),
                 arguments = listOf(
                     navArgument("userId") {
