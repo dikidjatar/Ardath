@@ -1,4 +1,4 @@
-package com.djatar.ardath.utils
+package com.djatar.ardath.feature.presentation.utils
 
 import android.text.format.DateFormat
 import java.util.Calendar

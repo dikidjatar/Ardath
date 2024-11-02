@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.djatar.ardath.core.presentation.components.placeHolderShimmer
 import com.djatar.ardath.ui.theme.ArdathTheme
-import com.djatar.ardath.utils.getColor
+import com.djatar.ardath.feature.presentation.utils.getColor
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

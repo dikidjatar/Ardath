@@ -27,7 +27,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import com.djatar.ardath.ui.theme.ArdathTheme
-import com.djatar.ardath.utils.getColor
+import com.djatar.ardath.feature.presentation.utils.getColor
 
 @Composable
 fun MessageItem(

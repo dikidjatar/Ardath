@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.djatar.ardath.ui.theme.ArdathTheme
-import com.djatar.ardath.utils.getColor
+import com.djatar.ardath.feature.presentation.utils.getColor
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

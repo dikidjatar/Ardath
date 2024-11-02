@@ -59,9 +59,9 @@ import com.djatar.ardath.R
 import com.djatar.ardath.core.presentation.components.BackButton
 import com.djatar.ardath.feature.domain.models.User
 import com.djatar.ardath.ui.theme.ArdathTheme
-import com.djatar.ardath.utils.FULL_DATE_FORMAT
-import com.djatar.ardath.utils.getColor
-import com.djatar.ardath.utils.getDate
+import com.djatar.ardath.feature.presentation.utils.FULL_DATE_FORMAT
+import com.djatar.ardath.feature.presentation.utils.getColor
+import com.djatar.ardath.feature.presentation.utils.getDate
 
 private const val TAG = "ProfilePage"
 

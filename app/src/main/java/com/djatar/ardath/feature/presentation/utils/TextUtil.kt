@@ -1,4 +1,4 @@
-package com.djatar.ardath.utils
+package com.djatar.ardath.feature.presentation.utils
 
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color

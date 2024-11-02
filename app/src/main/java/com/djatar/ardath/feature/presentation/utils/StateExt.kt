@@ -1,4 +1,4 @@
-package com.djatar.ardath.utils
+package com.djatar.ardath.feature.presentation.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
