@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "1091550080326",
+    "firebase_url": "https://pedat-community-id-default-rtdb.firebaseio.com",
+    "project_id": "pedat-community-id",
+    "storage_bucket": "pedat-community-id.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1091550080326:android:805c51618ceb716c5b8947",
+        "android_client_info": {
+          "package_name": "com.djatar.ardath"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8y1N4k_f0qMKdCm6GU1zblYHzMpUpxzU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1091550080326:android:ab0fc6d98f39a4505b8947",
+        "android_client_info": {
+          "package_name": "com.djatar.pedatcommunity"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8y1N4k_f0qMKdCm6GU1zblYHzMpUpxzU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
