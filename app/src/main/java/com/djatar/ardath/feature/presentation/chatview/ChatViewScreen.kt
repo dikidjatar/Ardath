@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.djatar.ardath.R
 import com.djatar.ardath.core.presentation.components.utils.Screen
 import com.djatar.ardath.feature.domain.models.MessageState
-import com.djatar.ardath.feature.presentation.chatview.components.EmptyChat
+import com.djatar.ardath.feature.presentation.chatview.components.EmptyMessage
 import com.djatar.ardath.feature.presentation.chatview.components.MessageInputContainer
 import com.djatar.ardath.feature.presentation.chatview.components.MessageItem
 import com.djatar.ardath.feature.presentation.common.ChatViewModel
@@ -92,28 +92,28 @@ fun ChatViewScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = paddingValues.calculateBottomPadding() + 60.dp)
-                    .imePadding(),
-                state = lazyListState
-            ) {
-                when {
-                    messageState.isLoading -> item {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), gapSize = 100.dp)
-                    }
-                    !messageState.error.isNullOrEmpty() -> item {
-                        Text(
-                            text = stringResource(R.string.fetching_message_error),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                    else -> {
-                        if (messageState.messages.isEmpty()) {
-                            item { EmptyChat(stringResource(R.string.no_message)) }
-                        } else {
+            if (!messageState.isLoading && messageState.messages.isEmpty()) {
+                EmptyMessage()
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = paddingValues.calculateBottomPadding() + 60.dp)
+                        .imePadding(),
+                    state = lazyListState
+                ) {
+                    when {
+                        messageState.isLoading -> item {
+                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), gapSize = 100.dp)
+                        }
+                        !messageState.error.isNullOrEmpty() -> item {
+                            Text(
+                                text = stringResource(R.string.fetching_message_error),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        else -> {
                             items(messageState.messages) { message ->
                                 MessageItem(
                                     displayName = message.senderName,

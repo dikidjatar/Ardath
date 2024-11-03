@@ -45,4 +45,7 @@
     <string name="delete_chats_error">Error deleted chats</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
+    <string name="empty_chats_message">No chat available. Start a conversation by adding a new chat!</string>
+    <string name="empty_message">No messages here yet…</string>
+    <string name="empty_message_desc">Send a message or tap the greeting below.</string>
 </resources>

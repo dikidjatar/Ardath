@@ -63,6 +63,7 @@ import com.djatar.ardath.feature.domain.models.ChatState
 import com.djatar.ardath.feature.presentation.chatview.components.ChatItem
 import com.djatar.ardath.feature.presentation.chatview.components.ChatItemLoader
 import com.djatar.ardath.feature.presentation.chatview.components.NewChatDialog
+import com.djatar.ardath.feature.presentation.common.components.EmptyChat
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.StateFlow
@@ -198,39 +199,43 @@ fun ChatsScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            LazyColumn(
-                state = lazyListState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = if (!isScrolling.value) paddingValues.calculateBottomPadding() + 70.dp else 0.dp),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(state.chats) { chatItem ->
-                    ChatItem(
-                        isLoading = false,
-                        chat = chatItem,
-                        selectionState = selectionState,
-                        selectedChatState = selectedChatState,
-                        onClick = { chat ->
-                            if (!selectionState.value && selectedChatState.isEmpty()) {
-                                chatViewModel.setSelectedChatId(chat.id)
-                                val params = "?userId=${chat.userId}&chatId=${chat.id}&title=${chat.title}"
-                                onNavigateToChatView(Screen.ChatViewScreen.route + params)
-                            } else {
+            if (!state.isLoading && state.chats.isEmpty()) {
+                EmptyChat()
+            } else {
+                LazyColumn(
+                    state = lazyListState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = if (!isScrolling.value) paddingValues.calculateBottomPadding() + 70.dp else 0.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(state.chats) { chatItem ->
+                        ChatItem(
+                            isLoading = false,
+                            chat = chatItem,
+                            selectionState = selectionState,
+                            selectedChatState = selectedChatState,
+                            onClick = { chat ->
+                                if (!selectionState.value && selectedChatState.isEmpty()) {
+                                    chatViewModel.setSelectedChatId(chat.id)
+                                    val params = "?userId=${chat.userId}&chatId=${chat.id}&title=${chat.title}"
+                                    onNavigateToChatView(Screen.ChatViewScreen.route + params)
+                                } else {
+                                    toggleSelection(state.chats.indexOf(chat))
+                                }
+                            },
+                            onLongClick = { chat ->
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                 toggleSelection(state.chats.indexOf(chat))
+                            },
+                            onProfileClick = {
+                                onNavigateToProfile(Screen.ProfileScreen.route + "?userId=${chatItem.userId}")
                             }
-                        },
-                        onLongClick = { chat ->
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            toggleSelection(state.chats.indexOf(chat))
-                        },
-                        onProfileClick = {
-                            onNavigateToProfile(Screen.ProfileScreen.route + "?userId=${chatItem.userId}")
-                        }
-                    )
-                }
-                if (state.isLoading) {
-                    items(batchSize) { ChatItemLoader() }
+                        )
+                    }
+                    if (state.isLoading) {
+                        items(batchSize) { ChatItemLoader() }
+                    }
                 }
             }
         }
