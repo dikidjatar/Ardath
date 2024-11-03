@@ -6,7 +6,15 @@
 package com.djatar.ardath.feature.presentation.common
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOut
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +38,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -38,14 +48,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.djatar.ardath.R
+import com.djatar.ardath.core.presentation.components.CloseButton
+import com.djatar.ardath.core.presentation.components.RemoveButton
 import com.djatar.ardath.core.presentation.components.utils.Screen
+import com.djatar.ardath.feature.domain.models.Chat
 import com.djatar.ardath.feature.domain.models.ChatState
 import com.djatar.ardath.feature.presentation.chatview.components.ChatItem
 import com.djatar.ardath.feature.presentation.chatview.components.ChatItemLoader
@@ -63,6 +80,9 @@ fun ChatsScreen(
     chatState: StateFlow<ChatState>,
     paddingValues: PaddingValues,
     isScrolling: MutableState<Boolean>,
+    selectionState: MutableState<Boolean>,
+    selectedChatState: SnapshotStateList<Chat>,
+    toggleSelection: (Int) -> Unit,
     onLoadMore: (batchSize: Int) -> Unit = {},
     onNavigateToChatView: (route: String) -> Unit,
     onNavigateToProfile: (route: String) -> Unit = {},
@@ -85,6 +105,8 @@ fun ChatsScreen(
         onLoadMore(batchSize)
     }
 
+    val hapticFeedback = LocalHapticFeedback.current
+
 //    LaunchedEffect(key1 = lazyListState) {
 //        snapshotFlow { lazyListState.isScrolledToEnd() && lazyListState.canScrollBackward }
 //            .distinctUntilChanged()
@@ -99,15 +121,28 @@ fun ChatsScreen(
         isScrolling.value = lazyListState.isScrollInProgress
     }
 
+    BackHandler(selectionState.value && selectedChatState.isNotEmpty()) {
+        chatViewModel.clearSelection()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.app_name)) },
+                colors = TopAppBarDefaults.topAppBarColors().copy(
+                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                title = { Text(
+                    text = if (selectionState.value) selectedChatState.size.toString()
+                    else stringResource(R.string.app_name)
+                ) },
                 actions = {
                     var expanded by remember { mutableStateOf(false) }
 
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = null)
+                    if (!selectionState.value) {
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = null)
+                        }
                     }
 
                     DropdownMenu(
@@ -125,12 +160,21 @@ fun ChatsScreen(
                             onClick = onLogout
                         )
                     }
+
+                    if (selectionState.value) {
+                        RemoveButton(selectedChatState.isNotEmpty()) {  }
+                    }
+                },
+                navigationIcon = {
+                    if (selectionState.value) {
+                        CloseButton { chatViewModel.clearSelection() }
+                    }
                 }
             )
         },
         floatingActionButton = {
             val floatingActionAlpha by animateFloatAsState(
-                targetValue = if (isScrolling.value) 0f else 1f,
+                targetValue = if (isScrolling.value || selectionState.value) 0f else 1f,
                 label = "floatingActionAlpha"
             )
             ExtendedFloatingActionButton(
@@ -160,18 +204,27 @@ fun ChatsScreen(
                     .padding(bottom = if (!isScrolling.value) paddingValues.calculateBottomPadding() + 70.dp else 0.dp),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                items(state.chats) { chat ->
+                items(state.chats) { chatItem ->
                     ChatItem(
                         isLoading = false,
-                        title = chat.title,
-                        lastMessage = chat.lastMessage,
-                        onClick = {
-                            chatViewModel.setSelectedChatId(chat.id)
-                            val params = "?userId=${chat.userId}&chatId=${chat.id}&title=${chat.title}"
-                            onNavigateToChatView(Screen.ChatViewScreen.route + params)
+                        chat = chatItem,
+                        selectionState = selectionState,
+                        selectedChatState = selectedChatState,
+                        onClick = { chat ->
+                            if (!selectionState.value && selectedChatState.isEmpty()) {
+                                chatViewModel.setSelectedChatId(chat.id)
+                                val params = "?userId=${chat.userId}&chatId=${chat.id}&title=${chat.title}"
+                                onNavigateToChatView(Screen.ChatViewScreen.route + params)
+                            } else {
+                                toggleSelection(state.chats.indexOf(chat))
+                            }
+                        },
+                        onLongClick = { chat ->
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            toggleSelection(state.chats.indexOf(chat))
                         },
                         onProfileClick = {
-                            onNavigateToProfile(Screen.ProfileScreen.route + "?userId=${chat.userId}")
+                            onNavigateToProfile(Screen.ProfileScreen.route + "?userId=${chatItem.userId}")
                         }
                     )
                 }

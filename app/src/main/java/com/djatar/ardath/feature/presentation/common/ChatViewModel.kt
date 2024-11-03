@@ -1,8 +1,11 @@
 package com.djatar.ardath.feature.presentation.common
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.djatar.ardath.core.Resource
+import com.djatar.ardath.feature.domain.models.Chat
 import com.djatar.ardath.feature.domain.models.ChatState
 import com.djatar.ardath.feature.domain.models.MessageState
 import com.djatar.ardath.feature.domain.repository.ChatRepository
@@ -24,6 +27,9 @@ class ChatViewModel @Inject constructor(
 
     private val _chatState = MutableStateFlow(ChatState())
     val chatState = _chatState.asStateFlow()
+
+    val multiSelectState = mutableStateOf(false)
+    val selectedChatState = mutableStateListOf<Chat>()
 
     private var lastVisibleChatKey: String? = null
 
@@ -58,6 +64,24 @@ class ChatViewModel @Inject constructor(
             value = repository.getChatId()
         }
         _chatState.value.selectedChatId = value
+    }
+
+    fun toggleSelection(index: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val item = _chatState.value.chats[index]
+            val selectedChat = selectedChatState.find { it.id == item.id }
+            if (selectedChat != null) {
+                selectedChatState.remove(selectedChat)
+            } else {
+                selectedChatState.add(item)
+            }
+            multiSelectState.value = selectedChatState.isNotEmpty()
+        }
+    }
+
+    fun clearSelection() {
+        multiSelectState.value = false
+        selectedChatState.clear()
     }
 
     fun hasChat(otherUserId: String, callback: (String?) -> Unit) {
