@@ -5,16 +5,8 @@
 
 package com.djatar.ardath.feature.presentation.common
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOut
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +28,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -47,20 +41,22 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.djatar.ardath.R
 import com.djatar.ardath.core.presentation.components.CloseButton
-import com.djatar.ardath.core.presentation.components.RemoveButton
+import com.djatar.ardath.core.presentation.components.DeleteButton
+import com.djatar.ardath.core.presentation.components.DeleteDialog
 import com.djatar.ardath.core.presentation.components.utils.Screen
 import com.djatar.ardath.feature.domain.models.Chat
 import com.djatar.ardath.feature.domain.models.ChatState
@@ -70,6 +66,7 @@ import com.djatar.ardath.feature.presentation.chatview.components.NewChatDialog
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 private const val TAG = "ChatScreen"
 
@@ -91,6 +88,7 @@ fun ChatsScreen(
     val state by chatState.collectAsStateWithLifecycle()
 
     var showNewChatDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val density = LocalDensity.current
     val lazyListState = rememberLazyListState()
@@ -100,12 +98,12 @@ fun ChatsScreen(
     val batchSize = (viewPortHeight / itemHeight).toInt()
 
     val reachedBottom by remember { derivedStateOf { lazyListState.reachedBottom() } }
-    if (reachedBottom) {
-        Log.d(TAG, "View: Reached bottom")
-        onLoadMore(batchSize)
-    }
+    if (reachedBottom) { onLoadMore(batchSize) }
 
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val hapticFeedback = LocalHapticFeedback.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
 //    LaunchedEffect(key1 = lazyListState) {
 //        snapshotFlow { lazyListState.isScrolledToEnd() && lazyListState.canScrollBackward }
@@ -126,6 +124,7 @@ fun ChatsScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors().copy(
@@ -162,7 +161,9 @@ fun ChatsScreen(
                     }
 
                     if (selectionState.value) {
-                        RemoveButton(selectedChatState.isNotEmpty()) {  }
+                        DeleteButton(selectedChatState.isNotEmpty()) {
+                            showDeleteDialog = true
+                        }
                     }
                 },
                 navigationIcon = {
@@ -241,6 +242,25 @@ fun ChatsScreen(
         chatId = state.selectedChatId,
         onItemClick = onNavigateToChatView
     ) { showNewChatDialog = false }
+
+    DeleteDialog(
+        showDialog = showDeleteDialog,
+        title = stringResource(R.string.delete_chats, selectedChatState.size),
+        message = stringResource(R.string.delete_chats_desc),
+        onCancel = { showDeleteDialog = false },
+    ) {
+        selectionState.value = false
+        showDeleteDialog = false
+        chatViewModel.deleteChat(selectedChatState) {
+            chatViewModel.clearSelection()
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    if (it) context.getString(R.string.delete_chats_success)
+                    else context.getString(R.string.delete_chats_error)
+                )
+            }
+        }
+    }
 }
 
 private fun LazyListState.isScrolledToEnd(): Boolean {

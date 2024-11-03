@@ -46,7 +46,7 @@ fun MessageItem(
             horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
         ) {
             if (!isMe) {
-                if (userAvatar != null) {
+                if (!userAvatar.isNullOrEmpty()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalPlatformContext.current)
                             .data(userAvatar)

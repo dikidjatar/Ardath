@@ -5,8 +5,6 @@ import android.util.Log
 import com.djatar.ardath.core.Resource
 import com.djatar.ardath.core.presentation.listeners.ChatListener
 import com.djatar.ardath.core.presentation.listeners.MessageListener
-import com.djatar.ardath.core.registerChat
-import com.djatar.ardath.core.registerToUserChats
 import com.djatar.ardath.feature.data.queryChats
 import com.djatar.ardath.feature.domain.models.Chat
 import com.djatar.ardath.feature.domain.models.Message
@@ -31,7 +29,7 @@ class ChatRepositoryImpl(
             val userId = auth.currentUser?.uid
             val query = database.reference.queryChats(userId, batchSize, lastVisibleChatKey)
 
-            val listener = ChatListener(chats =  chats, channel = this)
+            val listener = ChatListener(chats = chats, channel = this)
 
             query?.addChildEventListener(listener).also {
                 query?.get()?.addOnCompleteListener { task ->
@@ -90,29 +88,50 @@ class ChatRepositoryImpl(
             return
         }
 
-        val messageRef = database.reference.child("messages")
-        val messageId = messageRef.push().key ?: UUID.randomUUID().toString()
-        val newMessage = Message(
+        val currentUserId = auth.currentUser?.uid!!
+
+        val messageId = database.reference.child("messages").push().key
+            ?:  UUID.randomUUID().toString()
+        val timeStamp = System.currentTimeMillis()
+        val message = Message(
             messageId,
             auth.currentUser?.uid ?: "",
             auth.currentUser?.displayName ?: "Unknown",
             null,
-            messageText,
-            System.currentTimeMillis(),
+            messageText.trim(),
+            timeStamp,
             imageUrl,
         )
+        val currentUserChat = Chat(
+            id = chatId,
+            userId = otherUserId,
+            title = chatTitle,
+            lastMessage = message.text.toString(),
+            timestamp = timeStamp
+        )
+        val otherUserChat = Chat(
+            id = chatId,
+            userId = currentUserId,
+            title = auth.currentUser?.displayName ?: "",
+            lastMessage = message.text.toString(),
+            timestamp = timeStamp
+        )
 
-        messageRef.child(chatId).push().setValue(newMessage)
+        val messageValues = message.toMap()
+
+        val updates = hashMapOf<String, Any?>(
+            "/messages/$chatId/$currentUserId/$messageId" to messageValues,
+            "/messages/$chatId/$otherUserId/$messageId" to messageValues,
+            "/chats/$currentUserId/$chatId" to currentUserChat.toMap(),
+            "/chats/$otherUserId/$chatId" to otherUserChat.toMap(),
+            "/userChats/$currentUserId/$chatId" to true,
+            "/userChats/$otherUserId/$chatId" to true
+        )
+
+        database.reference.updateChildren(updates)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    database.registerChat(
-                        auth.currentUser,
-                        otherUserId,
-                        chatId,
-                        chatTitle,
-                        newMessage.text.toString()
-                    )
-                    database.registerToUserChats(auth.currentUser?.uid!!, otherUserId, chatId)
+                    Log.d(TAG, "Success send message")
                 } else {
                     Log.e(TAG, "Failed to send message: ", task.exception)
                 }
@@ -121,11 +140,28 @@ class ChatRepositoryImpl(
 
     override fun listenForMessages(chatId: String): Flow<Resource<List<Message>>> {
         return callbackFlow {
-            val query = database.getReference("messages").child(chatId)
+            val query = database.getReference("messages").child(chatId).child(auth.currentUser?.uid!!)
             val listener = MessageListener(chatId, this)
             query.addValueEventListener(listener)
             awaitClose { query.removeEventListener(listener) }
         }
+    }
+
+    override fun deleteChat(chats: List<Chat>, onFinish: (Boolean) -> Unit) {
+        val currentUserId = auth.currentUser?.uid!!
+        val updates = hashMapOf<String, Any?>()
+
+        for (chat in chats) {
+            val chatPath = "/chats/${currentUserId}/${chat.id}"
+            val messagePath = "/messages/${chat.id}/$currentUserId"
+            updates[chatPath] = null
+            updates[messagePath] = null
+        }
+
+        database.reference.updateChildren(updates)
+            .addOnCompleteListener { task ->
+                onFinish(task.isSuccessful)
+            }
     }
 
     companion object {

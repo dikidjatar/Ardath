@@ -39,4 +39,10 @@
     <string name="nav_chats">Chats</string>
     <string name="nav_profile">Profile</string>
     <string name="error_listen_message">Error listen message</string>
+    <string name="delete_chats">Delete %1$d chats</string>
+    <string name="delete_chats_desc">Are you sure you want to delete these chats?</string>
+    <string name="delete_chats_success">Chats deleted</string>
+    <string name="delete_chats_error">Error deleted chats</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
 </resources>

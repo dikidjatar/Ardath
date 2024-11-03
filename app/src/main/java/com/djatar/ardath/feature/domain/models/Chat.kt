@@ -5,5 +5,15 @@ data class Chat(
     val userId: String = "",
     val title: String = "",
     val lastMessage: String = "",
-    val createdAt: Long = System.currentTimeMillis()
-)
+    val timestamp: Long = System.currentTimeMillis()
+) {
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "id" to id,
+            "userId" to userId,
+            "title" to title,
+            "lastMessage" to lastMessage,
+            "timestamp" to timestamp
+        )
+    }
+}

@@ -133,6 +133,12 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    fun deleteChat(chats: List<Chat>, onFinish: (Boolean) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteChat(chats, onFinish)
+        }
+    }
+
     companion object {
         private const val TAG = "ChatViewModel"
     }

@@ -24,4 +24,6 @@ interface ChatRepository {
     )
 
     fun listenForMessages(chatId: String) : Flow<Resource<List<Message>>>
+
+    fun deleteChat(chats: List<Chat>, onFinish: (Boolean) -> Unit = {})
 }
