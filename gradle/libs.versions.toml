@@ -67,6 +67,10 @@ firebase-database = { group = "com.google.firebase", name = "firebase-database" 
 firebase-authentication = { group = "com.google.firebase", name = "firebase-auth-ktx" }
 # Firebase Storage
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage" }
+# Firebase messaging
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+# Firebase analytics
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 
 # Zego uikit call android
 uikit-call-android = { group = "com.github.ZEGOCLOUD", name = "zego_uikit_prebuilt_call_android", version.ref = "uikitCallAndroid" }

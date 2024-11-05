@@ -78,6 +78,10 @@ dependencies {
     implementation(libs.firebase.authentication)
     // Firebase storage
     implementation(libs.firebase.storage)
+    // Firebase messaging
+    implementation(libs.firebase.messaging)
+    // Firebase analytics
+    implementation(libs.firebase.analytics)
 
     // Android navigation compose
     implementation(libs.androidx.navigation.compose)
