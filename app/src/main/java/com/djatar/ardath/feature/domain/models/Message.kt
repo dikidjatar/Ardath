@@ -10,8 +10,9 @@ data class Message(
     val senderName: String = "",
     val senderImage: String? = "",
     val text: String? = "",
-    val timestamp: Long = 0L,
-    val imageUrl: String? = ""
+    val timestamp: Long = System.currentTimeMillis(),
+    val imageUrl: String? = "",
+    val status: String = MessageStatus.PENDING.name
 ) {
 
     @Exclude
@@ -23,7 +24,14 @@ data class Message(
             "senderImage" to senderImage,
             "text" to text,
             "timestamp" to timestamp,
-            "imageUrl" to imageUrl
+            "imageUrl" to imageUrl,
+            "status" to status
         )
     }
+}
+
+enum class MessageStatus {
+    PENDING,
+    SENT,
+    READ
 }

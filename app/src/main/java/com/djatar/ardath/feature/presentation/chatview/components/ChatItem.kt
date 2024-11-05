@@ -7,7 +7,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.djatar.ardath.core.presentation.components.placeHolderShimmer
 import com.djatar.ardath.feature.domain.models.Chat
 import com.djatar.ardath.feature.presentation.utils.getColor
+import com.djatar.ardath.feature.presentation.utils.getDate
 import com.djatar.ardath.ui.theme.ArdathTheme
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -68,15 +71,25 @@ fun ChatItem(
             )
             .padding(vertical = 8.dp),
         headlineContent = {
-            if (chat.title.isNotEmpty()) {
-                Text(
-                    text = chat.title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.W400,
+            if (!isLoading) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = chat.title,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.W400
+                        )
                     )
-                )
+                    Text(
+                        text = chat.timestamp.getDate("dd/mm/y"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         },
         supportingContent = {
@@ -184,7 +197,7 @@ private fun ChatItemPreview() {
         ChatItem(
             selectionState = selectionState,
             isLoading = false,
-            chat = Chat(title = "Chat Item", lastMessage = "last messages chat item"),
+            chat = Chat(title = "Chat Item", lastMessage = "last messages chat item".repeat(2)),
             selectedChatState = selectedChatState
         )
     }

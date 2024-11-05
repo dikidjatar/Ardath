@@ -11,6 +11,7 @@ import com.djatar.ardath.feature.domain.models.MessageState
 import com.djatar.ardath.feature.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -106,13 +107,13 @@ class ChatViewModel @Inject constructor(
         imageUrl
     )
 
-    fun listenForMessages(chatId: String) {
-        if (_chatState.value.messages.isLoading) return
+    fun listenForMessages(chatId: String): Job? {
+        if (_chatState.value.messages.isLoading) return null
         _chatState.value.apply {
             messages = messages.copy(isLoading = true, error = "")
         }
 
-        viewModelScope.launch {
+        return viewModelScope.launch {
             repository.listenForMessages(chatId).collectLatest { resource ->
                 _chatState.update {
                     when (resource) {

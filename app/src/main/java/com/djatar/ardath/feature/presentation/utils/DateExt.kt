@@ -9,6 +9,7 @@ const val WEEKLY_DATE_FORMAT = "EEEE"
 const val DEFAULT_DATE_FORMAT = "EEE, MMMM d"
 const val EXTENDED_DATE_FORMAT = "EEE, MMM d, yyyy"
 const val FULL_DATE_FORMAT = "EEEE, MMMM d, yyyy, hh:mm a"
+const val TIME_DATE_FORMAT = "hh:mm"
 
 fun Long.getDate(format: CharSequence = DEFAULT_DATE_FORMAT): String {
     return DateFormat.format(format, Calendar.getInstance(Locale.getDefault()).apply {

@@ -1,5 +1,8 @@
 package com.djatar.ardath.feature.domain.models
 
+import com.google.firebase.database.IgnoreExtraProperties
+
+@IgnoreExtraProperties
 data class User(
     val id: String = "",
     val name: String = "",

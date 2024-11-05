@@ -51,7 +51,6 @@ fun EmptyMessage(onClick: (String) -> Unit = {}) {
         }
     }
 
-    MaterialTheme.typography.displayLarge
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,

@@ -8,6 +8,7 @@ import com.djatar.ardath.core.presentation.listeners.MessageListener
 import com.djatar.ardath.feature.data.queryChats
 import com.djatar.ardath.feature.domain.models.Chat
 import com.djatar.ardath.feature.domain.models.Message
+import com.djatar.ardath.feature.domain.models.MessageStatus
 import com.djatar.ardath.feature.domain.repository.ChatRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
@@ -101,6 +102,7 @@ class ChatRepositoryImpl(
             messageText.trim(),
             timeStamp,
             imageUrl,
+            status = MessageStatus.PENDING.name
         )
         val currentUserChat = Chat(
             id = chatId,
@@ -131,7 +133,11 @@ class ChatRepositoryImpl(
         database.reference.updateChildren(updates)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d(TAG, "Success send message")
+                    val updateStatus = hashMapOf<String, Any>(
+                        "/messages/$chatId/$currentUserId/$messageId/status" to MessageStatus.SENT.name,
+                        "/messages/$chatId/$otherUserId/$messageId/status" to MessageStatus.SENT.name
+                    )
+                    database.reference.updateChildren(updateStatus)
                 } else {
                     Log.e(TAG, "Failed to send message: ", task.exception)
                 }
@@ -140,10 +146,19 @@ class ChatRepositoryImpl(
 
     override fun listenForMessages(chatId: String): Flow<Resource<List<Message>>> {
         return callbackFlow {
-            val query = database.getReference("messages").child(chatId).child(auth.currentUser?.uid!!)
-            val listener = MessageListener(chatId, this)
+            val currentUserId = auth.currentUser!!.uid
+            val query = database.getReference("messages").child(chatId).child(currentUserId)
+            val listener = MessageListener(
+                database.reference,
+                chatId,
+                currentUserId,
+                this
+            )
             query.addValueEventListener(listener)
-            awaitClose { query.removeEventListener(listener) }
+            awaitClose {
+                Log.d(TAG, "awaitClose call from listenForMessage")
+                query.removeEventListener(listener)
+            }
         }
     }
 

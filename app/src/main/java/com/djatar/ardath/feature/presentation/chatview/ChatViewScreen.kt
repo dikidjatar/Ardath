@@ -116,9 +116,7 @@ fun ChatViewScreen(
                         else -> {
                             items(messageState.messages) { message ->
                                 MessageItem(
-                                    displayName = message.senderName,
-                                    userAvatar = message.senderImage,
-                                    message = message.text ?: "",
+                                    message = message,
                                     isMe = message.senderId == Firebase.auth.currentUser?.uid,
                                     onProfileClick = {
                                         onNavigateToProfile(Screen.ProfileScreen.route + "?userId=${message.senderId}")

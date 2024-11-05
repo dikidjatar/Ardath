@@ -12,12 +12,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Done
+import androidx.compose.material.icons.outlined.DoneAll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,14 +32,16 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
-import com.djatar.ardath.ui.theme.ArdathTheme
+import com.djatar.ardath.feature.domain.models.Message
+import com.djatar.ardath.feature.domain.models.MessageStatus
+import com.djatar.ardath.feature.presentation.utils.TIME_DATE_FORMAT
 import com.djatar.ardath.feature.presentation.utils.getColor
+import com.djatar.ardath.feature.presentation.utils.getDate
+import com.djatar.ardath.ui.theme.ArdathTheme
 
 @Composable
 fun MessageItem(
-    displayName: String = "John Doe",
-    userAvatar: String? = null,
-    message: String = "Hello, my name is $displayName",
+    message: Message,
     isMe: Boolean = false,
     onProfileClick: () -> Unit = {}
 ) {
@@ -46,10 +54,10 @@ fun MessageItem(
             horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
         ) {
             if (!isMe) {
-                if (!userAvatar.isNullOrEmpty()) {
+                if (!message.senderImage.isNullOrEmpty()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalPlatformContext.current)
-                            .data(userAvatar)
+                            .data(message.senderName)
                             .build(),
                         contentDescription = null,
                         modifier = Modifier
@@ -62,43 +70,71 @@ fun MessageItem(
                             .padding(end = 8.dp)
                             .clip(CircleShape)
                             .clickable { onProfileClick() }
-                            .background(displayName.first().getColor())
+                            .background(message.senderName.first().getColor())
                             .size(50.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = displayName.first().uppercase(),
+                            text = message.senderName.first().uppercase(),
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp
                         )
                     }
                 }
             }
-            Column(
+            Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
                     .background(color = if (isMe) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceDim)
-                    .widthIn(min = 60.dp, max = 250.dp),
+                    .padding(8.dp)
+                    .widthIn(min = 50.dp, max = 300.dp),
             ) {
-                if (!isMe) {
+                Column {
+                    if (!isMe) {
+                        Text(
+                            text = message.senderName,
+                            style = MaterialTheme.typography.labelLarge,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     Text(
-                        modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp),
-                        text = displayName,
-                        style = MaterialTheme.typography.labelLarge,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = message.text.toString(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (isMe) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier.align(Alignment.Bottom),
+                            text = message.timestamp.getDate(TIME_DATE_FORMAT),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                        )
+                        if (isMe) {
+                            val icon: ImageVector = when (message.status) {
+                                MessageStatus.SENT.name -> Icons.Outlined.Done
+                                MessageStatus.READ.name -> Icons.Outlined.DoneAll
+                                else -> Icons.Outlined.AccessTime
+                            }
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(start = 4.dp)
+                                    .size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
-                Text(
-                    modifier = Modifier.padding(
-                        top = if (isMe) 8.dp else 0.dp , start = 8.dp,
-                        end = 8.dp, bottom = 8.dp
-                    ),
-                    text = message,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (isMe) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
@@ -108,7 +144,10 @@ fun MessageItem(
 @Composable
 private fun MessageItemPreview() {
     ArdathTheme {
-        MessageItem()
+        MessageItem(message = Message(
+            senderName = "John Doe",
+            text = "Hello, my name is John Doe".repeat(3),
+        ))
     }
 }
 
@@ -116,6 +155,9 @@ private fun MessageItemPreview() {
 @Composable
 private fun MessageItemPreview2() {
     ArdathTheme {
-        MessageItem(isMe = true)
+        MessageItem(message = Message(
+            senderName = "John Doe",
+            text = "Hello, my name is John Doe".repeat(1),
+        ), isMe = true)
     }
 }

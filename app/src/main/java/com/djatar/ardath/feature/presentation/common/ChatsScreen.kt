@@ -33,7 +33,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -43,6 +42,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -57,6 +57,7 @@ import com.djatar.ardath.R
 import com.djatar.ardath.core.presentation.components.CloseButton
 import com.djatar.ardath.core.presentation.components.DeleteButton
 import com.djatar.ardath.core.presentation.components.DeleteDialog
+import com.djatar.ardath.core.presentation.components.defaultAppBarColor
 import com.djatar.ardath.core.presentation.components.utils.Screen
 import com.djatar.ardath.feature.domain.models.Chat
 import com.djatar.ardath.feature.domain.models.ChatState
@@ -67,6 +68,7 @@ import com.djatar.ardath.feature.presentation.common.components.EmptyChat
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 private const val TAG = "ChatScreen"
@@ -98,23 +100,18 @@ fun ChatsScreen(
     val itemHeight = with(density) { 86.dp.toPx() }
     val batchSize = (viewPortHeight / itemHeight).toInt()
 
-    val reachedBottom by remember { derivedStateOf { lazyListState.reachedBottom() } }
-    if (reachedBottom) { onLoadMore(batchSize) }
-
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val hapticFeedback = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
 
-//    LaunchedEffect(key1 = lazyListState) {
-//        snapshotFlow { lazyListState.isScrolledToEnd() && lazyListState.canScrollBackward }
-//            .distinctUntilChanged()
-//            .collectLatest { isAtEnd ->
-//                if (isAtEnd) {
-//                    chatViewModel.loadChats(batchSize)
-//                }
-//            }
-//    }
+    LaunchedEffect(key1 = lazyListState) {
+        snapshotFlow { lazyListState.reachedBottom() }
+            .distinctUntilChanged()
+            .collect { isAtEnd ->
+                if (isAtEnd) onLoadMore(batchSize)
+            }
+    }
 
     LaunchedEffect(lazyListState.isScrollInProgress) {
         isScrolling.value = lazyListState.isScrollInProgress
@@ -128,10 +125,7 @@ fun ChatsScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors().copy(
-                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                ),
+                colors = TopAppBarDefaults.defaultAppBarColor(),
                 title = { Text(
                     text = if (selectionState.value) selectedChatState.size.toString()
                     else stringResource(R.string.app_name)

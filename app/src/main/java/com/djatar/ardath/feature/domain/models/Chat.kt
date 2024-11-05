@@ -1,5 +1,9 @@
 package com.djatar.ardath.feature.domain.models
 
+import com.google.firebase.database.Exclude
+import com.google.firebase.database.IgnoreExtraProperties
+
+@IgnoreExtraProperties
 data class Chat(
     val id: String = "",
     val userId: String = "",
@@ -7,6 +11,8 @@ data class Chat(
     val lastMessage: String = "",
     val timestamp: Long = System.currentTimeMillis()
 ) {
+
+    @Exclude
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "id" to id,
