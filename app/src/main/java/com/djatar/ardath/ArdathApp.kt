@@ -3,6 +3,10 @@ package com.djatar.ardath
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import com.djatar.ardath.feature.presentation.utils.NotificationUtil
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -13,10 +17,14 @@ class ArdathApp : Application() {
         super.onCreate()
         context = applicationContext
         applicationScope = CoroutineScope(SupervisorJob())
+        firebaseAnalytics = Firebase.analytics
+
+        NotificationUtil.createNotificationChannel()
     }
 
     companion object {
         lateinit var applicationScope: CoroutineScope
+        lateinit var firebaseAnalytics: FirebaseAnalytics
 
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context

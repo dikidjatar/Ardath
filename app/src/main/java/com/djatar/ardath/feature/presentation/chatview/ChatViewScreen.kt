@@ -1,5 +1,6 @@
 package com.djatar.ardath.feature.presentation.chatview
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -65,6 +66,8 @@ fun ChatViewScreen(
             }
         }
     }
+
+    BackHandler { onNavigateBack() }
 
     val bottomPadding = if (!WindowInsets.isImeVisible) 10.dp else 0.dp
     Scaffold(

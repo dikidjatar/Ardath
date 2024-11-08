@@ -2,6 +2,9 @@ package com.djatar.ardath.feature.data.repository
 
 import android.content.Context
 import android.util.Log
+import com.djatar.ardath.ArdathApp
+import com.djatar.ardath.ArdathApp.Companion.applicationScope
+import com.djatar.ardath.R
 import com.djatar.ardath.core.Resource
 import com.djatar.ardath.core.presentation.listeners.ChatListener
 import com.djatar.ardath.core.presentation.listeners.MessageListener
@@ -10,17 +13,31 @@ import com.djatar.ardath.feature.domain.models.Chat
 import com.djatar.ardath.feature.domain.models.Message
 import com.djatar.ardath.feature.domain.models.MessageStatus
 import com.djatar.ardath.feature.domain.repository.ChatRepository
+import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.IOException
 import java.util.UUID
 
 class ChatRepositoryImpl(
     private val context: Context,
     private val database: FirebaseDatabase,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val messaging: FirebaseMessaging
 ) : ChatRepository {
 
     private val chats = mutableListOf<Chat>()
@@ -138,6 +155,12 @@ class ChatRepositoryImpl(
                         "/messages/$chatId/$otherUserId/$messageId/status" to MessageStatus.SENT.name
                     )
                     database.reference.updateChildren(updateStatus)
+                    postNotificationToUser(
+                        currentUserId,
+                        chatId,
+                        message.senderName,
+                        message.text ?: ""
+                    )
                 } else {
                     Log.e(TAG, "Failed to send message: ", task.exception)
                 }
@@ -155,6 +178,7 @@ class ChatRepositoryImpl(
                 this
             )
             query.addValueEventListener(listener)
+            subscribeForNotification(chatId)
             awaitClose {
                 Log.d(TAG, "awaitClose call from listenForMessage")
                 query.removeEventListener(listener)
@@ -177,6 +201,73 @@ class ChatRepositoryImpl(
             .addOnCompleteListener { task ->
                 onFinish(task.isSuccessful)
             }
+    }
+
+    override fun subscribeForNotification(chatId: String) {
+        messaging.subscribeToTopic("chat_$chatId")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d(TAG, "Subscribed to topic: chat_$chatId")
+                } else {
+                    Log.d(TAG, "Failed to subscribe to topic: chat_$chatId")
+                }
+            }
+    }
+
+    override fun postNotificationToUser(
+        userId: String,
+        chatId: String,
+        senderName: String,
+        messageText: String
+    ) {
+        val fcmUrl = "https://fcm.googleapis.com/v1/projects/pedat-community-id/messages:send"
+        val jsonBody = JSONObject().apply {
+            put("message", JSONObject().apply {
+                put("topic", "chat_$chatId")
+                put("notification", JSONObject().apply {
+                    put("title", senderName)
+                    put("body", messageText)
+                })
+                put("data", JSONObject().apply {
+                    put("userId", userId)
+                    put("chatId", chatId)
+                    put("chatTitle", senderName)
+                })
+            })
+        }
+        applicationScope.launch(Dispatchers.IO) {
+            val client = OkHttpClient()
+            val requestBody = jsonBody.toString().toRequestBody("application/json".toMediaTypeOrNull())
+            val request = Request.Builder()
+                .url(fcmUrl)
+                .addHeader("Authorization", "Bearer ${getAccessToken()}")
+                .addHeader("Content-Type", "application/json")
+                .post(requestBody)
+                .build()
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.e(TAG, "Failed to send notification", e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        Log.d(TAG, "Notification sent successfully")
+                    } else {
+                        Log.w(TAG, "Failed to send notification, CODE: ${response.code}")
+                    }
+                    response.body?.close()
+                }
+            })
+        }
+    }
+
+    override fun getAccessToken(): String {
+        val inputStream = ArdathApp.context.resources.openRawResource(R.raw.ardath_key)
+        val googleCreds = GoogleCredentials.fromStream(inputStream)
+            .createScoped(listOf("https://www.googleapis.com/auth/firebase.messaging"))
+        val token = googleCreds.refreshAccessToken().tokenValue
+        Log.d(TAG, "getAccessToken($token)")
+        return token
     }
 
     companion object {

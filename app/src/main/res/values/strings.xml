@@ -48,4 +48,6 @@
     <string name="empty_chats_message">No chat available. Start a conversation by adding a new chat!</string>
     <string name="empty_message">No messages here yet…</string>
     <string name="empty_message_desc">Send a message or tap the greeting below.</string>
+    <string name="channel_name">Messages</string>
+    <string name="channel_description">Notif of messages</string>
 </resources>

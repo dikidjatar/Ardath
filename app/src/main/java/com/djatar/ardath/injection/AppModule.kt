@@ -7,6 +7,7 @@ import com.djatar.ardath.feature.domain.repository.ChatRepository
 import com.djatar.ardath.feature.domain.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,15 +20,18 @@ import javax.inject.Singleton
 object AppModule {
 
     @Provides
-    @Singleton
     fun provideDatabase() : FirebaseDatabase {
         return FirebaseDatabase.getInstance()
     }
 
     @Provides
-    @Singleton
     fun provideAuth() : FirebaseAuth {
         return FirebaseAuth.getInstance()
+    }
+
+    @Provides
+    fun provideMessaging() : FirebaseMessaging {
+        return FirebaseMessaging.getInstance()
     }
 
     @Provides
@@ -35,9 +39,10 @@ object AppModule {
     fun provideChatRepository(
         @ApplicationContext context: Context,
         database: FirebaseDatabase,
-        auth: FirebaseAuth
+        auth: FirebaseAuth,
+        messaging: FirebaseMessaging
     ) : ChatRepository {
-        return ChatRepositoryImpl(context, database, auth)
+        return ChatRepositoryImpl(context, database, auth, messaging)
     }
 
     @Provides

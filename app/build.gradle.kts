@@ -6,6 +6,24 @@ plugins {
     alias(libs.plugins.google.gms.google.services)
 }
 
+sealed class Version(
+    val versionMajor: Int,
+    val versionMinor: Int,
+    val versionPatch: Int
+) {
+    abstract fun toVersionName(): String
+    class Stable(versionMajor: Int, versionMinor: Int, versionPatch: Int) :
+        Version(versionMajor, versionMinor, versionPatch) {
+            override fun toVersionName(): String = "${versionMajor}.${versionMinor}.${versionPatch}"
+        }
+}
+
+val currentVersion = Version.Stable(
+    versionMajor = 1,
+    versionMinor = 0,
+    versionPatch = 0
+)
+
 android {
     namespace = "com.djatar.ardath"
     compileSdk = 34
@@ -15,7 +33,7 @@ android {
         minSdk = 28
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = currentVersion.toVersionName()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -48,6 +66,7 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
         }
     }
 }
@@ -82,6 +101,8 @@ dependencies {
     implementation(libs.firebase.messaging)
     // Firebase analytics
     implementation(libs.firebase.analytics)
+    // Google oauth2
+    implementation (libs.google.auth.library.oauth2.http)
 
     // Android navigation compose
     implementation(libs.androidx.navigation.compose)

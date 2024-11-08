@@ -106,7 +106,6 @@ fun AppEntry(
                 )
             }
             animatedComposable(Screen.ChatsScreen()) {
-
                 val viewModel = hiltViewModel<ChatViewModel>().also {
                     it.loadChats()
                 }

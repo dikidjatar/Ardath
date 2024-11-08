@@ -78,4 +78,15 @@ interface ChatRepository {
      * Returns `true` if successful, `false` if failed.
      */
     fun deleteChat(chats: List<Chat>, onFinish: (Boolean) -> Unit = {})
+
+    fun subscribeForNotification(chatId: String)
+
+    fun postNotificationToUser(
+        userId: String,
+        chatId: String,
+        senderName: String,
+        messageText: String
+    )
+
+    fun getAccessToken(): String
 }
