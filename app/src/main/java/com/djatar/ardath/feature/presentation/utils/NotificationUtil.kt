@@ -4,12 +4,13 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
+import androidx.core.app.Person
+import androidx.core.graphics.drawable.IconCompat
+import com.djatar.ardath.ArdathApp
 import com.djatar.ardath.ArdathApp.Companion.context
 import com.djatar.ardath.R
-import kotlin.random.Random
-
-private const val TAG = "NotificationUtil"
 
 object NotificationUtil {
     private val notificationManager: NotificationManager =
@@ -17,9 +18,9 @@ object NotificationUtil {
     private const val CHANNEL_ID = "messages"
 
     fun createNotificationChannel() {
-        val name = context.getString(R.string.channel_name)
+        val name = ArdathApp.context.getString(R.string.channel_name)
         val important = NotificationManager.IMPORTANCE_HIGH
-        val descriptionText = context.getString(R.string.channel_description)
+        val descriptionText = ArdathApp.context.getString(R.string.channel_description)
         val channel = NotificationChannel(CHANNEL_ID, name, important).apply {
             description = descriptionText
         }
@@ -27,17 +28,33 @@ object NotificationUtil {
     }
 
     fun notifyForMessages(
-        title: String?,
-        message: String?,
-        pendingIntent: PendingIntent? = null
+        userIcon: IconCompat? = null,
+        userName: String?,
+        messageText: String?,
+        pendingIntent: PendingIntent? = null,
+        notificationId: Int
     ) {
-        val notificationId = Random.nextInt(1000)
-        val notificationBuilder = NotificationCompat.Builder(context.applicationContext, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(message)
+        val person = Person.Builder().setIcon(userIcon).setName(userName).build()
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setStyle(
+                NotificationCompat.MessagingStyle(person)
+                    .addMessage(
+                        NotificationCompat.MessagingStyle.Message(
+                            messageText,
+                            System.currentTimeMillis(),
+                            person
+                        )
+                    )
+            )
+            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-        notificationManager.notify(notificationId, notificationBuilder.build())
+        notificationManager.notify(notificationId, notification.build())
+    }
+
+    fun cancelNotification(notificationId: Int) {
+        notificationManager.cancel(notificationId)
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -27,6 +28,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.djatar.ardath.feature.presentation.utils.NotificationUtil
 import com.djatar.ardath.core.presentation.common.animatedComposable
 import com.djatar.ardath.core.presentation.components.utils.Screen
 import com.djatar.ardath.feature.presentation.auth.signin.SignInScreen
@@ -35,6 +37,10 @@ import com.djatar.ardath.feature.presentation.chatview.ChatViewScreen
 import com.djatar.ardath.feature.presentation.common.ChatViewModel
 import com.djatar.ardath.feature.presentation.common.ChatsScreen
 import com.djatar.ardath.feature.presentation.profile.ProfileScreen
+import com.djatar.ardath.feature.presentation.utils.CHAT_USER_ID
+import com.djatar.ardath.feature.presentation.utils.IS_CHAT_ON
+import com.djatar.ardath.feature.presentation.utils.PreferenceUtil
+import com.djatar.ardath.feature.presentation.utils.PreferenceUtil.updateString
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -152,6 +158,18 @@ fun AppEntry(
                      LaunchedEffect(Unit) { it.listenForMessages(chatId) }
                 }
                 val chatState by viewModel.chatState.collectAsStateWithLifecycle()
+
+                DisposableEffect(otherUserId) {
+                    NotificationUtil.cancelNotification(otherUserId.hashCode())
+
+                    PreferenceUtil.encodeString(CHAT_USER_ID, otherUserId)
+                    PreferenceUtil.updateValue(IS_CHAT_ON, true)
+
+                    onDispose {
+                        CHAT_USER_ID.updateString("")
+                        PreferenceUtil.updateValue(IS_CHAT_ON, false)
+                    }
+                }
 
                 ChatViewScreen(
                     chatViewModel = viewModel,

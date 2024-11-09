@@ -112,6 +112,8 @@ dependencies {
     implementation(libs.accompanist.placeholder)
     implementation(libs.accompanist.swiperefresh)
 
+    implementation(libs.mmkv)
+
     // Uikit call android
     // implementation(libs.uikit.call.android)
 

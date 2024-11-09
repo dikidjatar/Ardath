@@ -50,4 +50,5 @@
     <string name="empty_message_desc">Send a message or tap the greeting below.</string>
     <string name="channel_name">Messages</string>
     <string name="channel_description">Notif of messages</string>
+    <string name="reply_label">Reply</string>
 </resources>

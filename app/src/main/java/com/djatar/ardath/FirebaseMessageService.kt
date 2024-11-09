@@ -3,6 +3,10 @@ package com.djatar.ardath
 import android.annotation.SuppressLint
 import android.util.Log
 import com.djatar.ardath.feature.presentation.utils.NotificationUtil
+import com.djatar.ardath.feature.presentation.utils.CHAT_USER_ID
+import com.djatar.ardath.feature.presentation.utils.IS_CHAT_ON
+import com.djatar.ardath.feature.presentation.utils.PreferenceUtil.getBoolean
+import com.djatar.ardath.feature.presentation.utils.PreferenceUtil.getString
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -13,26 +17,21 @@ class FirebaseMessageService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-        Log.d(TAG, "From: ${message.from}, notification: ${message.notification.toString()}")
-        message.notification?.let { msg ->
+        Log.d(TAG, "From: ${message.from}, notification: ${message.senderId.toString()}")
+
+        Firebase.auth.currentUser?.let { user ->
             val userId = message.data["userId"]
 
-            Firebase.auth.currentUser?.let { user ->
+            message.notification?.let { msg ->
                 if (user.uid != userId) {
-//                    val pendingIntent: PendingIntent =
-//                        Intent(this, MainActivity::class.java).apply {
-//                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-//                        }.let { notificationIntent ->
-//                            PendingIntent.getActivity(
-//                                this, 0, notificationIntent,
-//                                PendingIntent.FLAG_IMMUTABLE
-//                            )
-//                        }
-
-                    NotificationUtil.notifyForMessages(
-                        title = msg.title,
-                        message = msg.body
-                    )
+                    if (!IS_CHAT_ON.getBoolean() && CHAT_USER_ID.getString() != userId) {
+                        val notificationId = userId.hashCode()
+                        NotificationUtil.notifyForMessages(
+                            userName = msg.title,
+                            messageText = msg.body,
+                            notificationId = notificationId
+                        )
+                    }
                 }
             }
         }

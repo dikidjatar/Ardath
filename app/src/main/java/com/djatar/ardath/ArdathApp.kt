@@ -7,6 +7,7 @@ import com.djatar.ardath.feature.presentation.utils.NotificationUtil
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
+import com.tencent.mmkv.MMKV
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -15,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 class ArdathApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        MMKV.initialize(this)
         context = applicationContext
         applicationScope = CoroutineScope(SupervisorJob())
         firebaseAnalytics = Firebase.analytics
