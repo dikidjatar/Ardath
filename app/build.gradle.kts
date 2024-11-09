@@ -112,10 +112,8 @@ dependencies {
     implementation(libs.accompanist.placeholder)
     implementation(libs.accompanist.swiperefresh)
 
+    // key-value
     implementation(libs.mmkv)
-
-    // Uikit call android
-    // implementation(libs.uikit.call.android)
 
     // Material
     implementation(libs.androidx.material)
