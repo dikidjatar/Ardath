@@ -4,10 +4,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
-import androidx.core.app.Person
-import androidx.core.graphics.drawable.IconCompat
 import com.djatar.ardath.ArdathApp
 import com.djatar.ardath.ArdathApp.Companion.context
 import com.djatar.ardath.R
@@ -28,33 +27,39 @@ object NotificationUtil {
     }
 
     fun notifyForMessages(
-        userIcon: IconCompat? = null,
         userName: String?,
         messageText: String?,
+        imageUrl: String? = null,
         pendingIntent: PendingIntent? = null,
         notificationId: Int
     ) {
-        val person = Person.Builder().setIcon(userIcon).setName(userName).build()
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setStyle(
-                NotificationCompat.MessagingStyle(person)
-                    .addMessage(
-                        NotificationCompat.MessagingStyle.Message(
-                            messageText,
-                            System.currentTimeMillis(),
-                            person
-                        )
-                    )
-            )
+            .setContentTitle(userName)
+            .setContentText(messageText)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-        notificationManager.notify(notificationId, notification.build())
+
+        if (!imageUrl.isNullOrEmpty()) {
+            ImageUtils.getBitmapFromUrl(imageUrl)?.let {
+                builder.setStyle(
+                    NotificationCompat.BigPictureStyle()
+                        .bigPicture(it)
+                        .bigLargeIcon(null as Bitmap?)
+                        .setBigContentTitle(userName)
+                        .setSummaryText(messageText)
+                ).setLargeIcon(it)
+            }
+        }
+        notificationManager.notify(notificationId, builder.build())
     }
 
     fun cancelNotification(notificationId: Int) {
         notificationManager.cancel(notificationId)
     }
+
+    private const val TAG = "NotificationUtil"
 }
