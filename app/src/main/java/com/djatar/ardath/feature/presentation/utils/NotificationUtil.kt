@@ -7,7 +7,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
-import com.djatar.ardath.ArdathApp
 import com.djatar.ardath.ArdathApp.Companion.context
 import com.djatar.ardath.R
 
@@ -17,9 +16,9 @@ object NotificationUtil {
     private const val CHANNEL_ID = "messages"
 
     fun createNotificationChannel() {
-        val name = ArdathApp.context.getString(R.string.channel_name)
+        val name = context.getString(R.string.channel_name)
         val important = NotificationManager.IMPORTANCE_HIGH
-        val descriptionText = ArdathApp.context.getString(R.string.channel_description)
+        val descriptionText = context.getString(R.string.channel_description)
         val channel = NotificationChannel(CHANNEL_ID, name, important).apply {
             description = descriptionText
         }

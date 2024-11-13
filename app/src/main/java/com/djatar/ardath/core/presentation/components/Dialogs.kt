@@ -18,33 +18,33 @@ import com.djatar.ardath.ui.theme.ArdathTheme
 
 @Composable
 fun ErrorDialog(
-    title: String = "Error",
+    title: String? = null,
     errorMessage: String = "error occurred",
-    onDismissRequest: () -> Unit = {}
+    onDismiss: () -> Unit = {}
 ) {
     AlertDialog(
-        title = { Text(text = title) },
+        title = title?.let { { Text(text = it) } },
         text = { Text(text = errorMessage) },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = { onDismissRequest() }) {
+            TextButton(onClick = onDismiss) {
                 Text(text = stringResource(R.string.ok))
             }
         },
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = onDismiss,
     )
 }
 
 @Composable
 fun ErrorDialog(
-    title: String = "Error",
+    title: String? = null,
     errorMessage: String = "error occurred",
     visible: Boolean = false,
     onDismissRequest: () -> Unit = {}
 ) {
     if (visible) {
         AlertDialog(
-            title = { Text(text = title) },
+            title = title?.let { { Text(text = it) } },
             text = { Text(text = errorMessage) },
             confirmButton = {},
             dismissButton = {

@@ -1,5 +1,6 @@
 package com.djatar.ardath.feature.presentation.auth.signin
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +16,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,34 +27,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.djatar.ardath.R
 import com.djatar.ardath.core.presentation.components.ErrorDialog
 import com.djatar.ardath.core.presentation.components.LoadingDialog
+import com.djatar.ardath.feature.presentation.auth.AuthState
+import com.djatar.ardath.feature.presentation.auth.AuthViewModel
+import com.djatar.ardath.feature.presentation.auth.components.AuthError.getErrorText
 import com.djatar.ardath.feature.presentation.auth.components.AuthInputField
 import com.djatar.ardath.feature.presentation.auth.components.AuthPageTitle
-import com.google.firebase.auth.FirebaseUser
 
 private const val TAG = "LoginPage"
 
 @Composable
 fun SignInScreen(
+    viewModel: AuthViewModel,
     paddingValues: PaddingValues,
-    onNavigateToRegisterScreen: () -> Unit = {},
-    onSignInSuccess: (user: FirebaseUser) -> Unit
+    onNavigateToRegisterScreen: () -> Unit = {}
 ) {
-
-    val viewModel = hiltViewModel<SignInViewModel>()
-    val uiState = viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
 
-    LaunchedEffect(uiState.value) {
-        when (uiState.value) {
-            is SignInState.Success -> onSignInSuccess((uiState.value as SignInState.Success).user)
-            else -> {}
-        }
+    BackHandler {
+        viewModel.clearState()
+        onNavigateToRegisterScreen()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -86,8 +83,7 @@ fun SignInScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp),
-                enabled = email.isNotEmpty() && password.isNotEmpty(),
-                onClick = { viewModel.signIn(email, password) },
+                onClick = { viewModel.signInUser(email, password) },
             ) {
                 Text(text = stringResource(R.string.login))
             }
@@ -103,7 +99,10 @@ fun SignInScreen(
                 colors = ButtonDefaults.buttonColors().copy(
                     containerColor = MaterialTheme.colorScheme.error
                 ),
-                onClick = { onNavigateToRegisterScreen() },
+                onClick = {
+                    viewModel.clearState()
+                    onNavigateToRegisterScreen()
+                }
             ) {
                 Text(text = stringResource(R.string.create_new_account))
             }
@@ -127,16 +126,20 @@ fun SignInScreen(
             )
         }
 
-        LoadingDialog(
-            title = stringResource(R.string.process_your_login),
-            visible = uiState.value == SignInState.Loading
-        )
-
-        ErrorDialog(
-            title = stringResource(R.string.login_error),
-            errorMessage = stringResource(R.string.login_error),
-            visible = uiState.value == SignInState.Error
-        ) { viewModel.clearState() }
+        when (state) {
+            is AuthState.Loading -> {
+                LoadingDialog(
+                    title = stringResource(R.string.process_your_login),
+                    visible = state == AuthState.Loading
+                )
+            }
+            is AuthState.Error, is AuthState.ErrorCode -> {
+                val error = (state as? AuthState.Error)?.error
+                    ?: (state as AuthState.ErrorCode).code.getErrorText()
+                ErrorDialog(errorMessage = error) { viewModel.clearState() }
+            }
+            else -> {}
+        }
     }
 
 }

@@ -10,7 +10,7 @@
     <string name="or">OR</string>
     <string name="process_your_login">Process your login</string>
     <string name="ok">OK</string>
-    <string name="login_error">Login error</string>
+    <string name="sign_in_failure">Sign in failure</string>
     <string name="label_first_name">First name</string>
     <string name="label_last_name">Last name</string>
     <string name="register">Register</string>
@@ -21,7 +21,7 @@
     <string name="message">Message</string>
     <string name="fetching_message">Fetching messages</string>
     <string name="name">Name</string>
-    <string name="sign_up_error">Sign up error</string>
+    <string name="sign_up_failure">Sign up failure</string>
     <string name="confirm_password">Confirm password</string>
     <string name="fetching_message_error">Error fetching message</string>
     <string name="new_chat">New chat</string>
@@ -51,4 +51,9 @@
     <string name="channel_name">Messages</string>
     <string name="channel_description">Notif of messages</string>
     <string name="reply_label">Reply</string>
+    <string name="empty_email_error">Email should not be empty</string>
+    <string name="empty_password_error">Password should not be empty</string>
+    <string name="confirm_password_error">Passwords do not match</string>
+    <string name="empty_name_error">Name should not be empty</string>
+    <string name="save_user_data_error">Failed to save user data</string>
 </resources>

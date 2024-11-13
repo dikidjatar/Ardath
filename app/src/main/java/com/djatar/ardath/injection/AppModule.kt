@@ -1,8 +1,12 @@
 package com.djatar.ardath.injection
 
 import android.content.Context
+import com.djatar.ardath.feature.data.auth.FirebaseAuthenticator
+import com.djatar.ardath.feature.data.repository.AuthRepository
 import com.djatar.ardath.feature.data.repository.ChatRepositoryImpl
 import com.djatar.ardath.feature.data.repository.UserRepositoryImpl
+import com.djatar.ardath.feature.domain.auth.BaseAuthenticator
+import com.djatar.ardath.feature.domain.repository.BaseAuthRepository
 import com.djatar.ardath.feature.domain.repository.ChatRepository
 import com.djatar.ardath.feature.domain.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
@@ -36,6 +40,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideAuthenticator() : BaseAuthenticator {
+        return FirebaseAuthenticator()
+    }
+
+    @Provides
+    @Singleton
     fun provideChatRepository(
         @ApplicationContext context: Context,
         database: FirebaseDatabase,
@@ -52,5 +62,13 @@ object AppModule {
         auth: FirebaseAuth
     ) : UserRepository {
         return UserRepositoryImpl(database, auth)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAuthRepository(
+        authenticator: BaseAuthenticator
+    ) : BaseAuthRepository {
+        return AuthRepository(authenticator)
     }
 }

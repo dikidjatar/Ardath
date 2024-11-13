@@ -28,9 +28,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
-import com.djatar.ardath.feature.presentation.utils.NotificationUtil
 import com.djatar.ardath.core.presentation.common.animatedComposable
 import com.djatar.ardath.core.presentation.components.utils.Screen
+import com.djatar.ardath.feature.presentation.auth.AuthViewModel
 import com.djatar.ardath.feature.presentation.auth.signin.SignInScreen
 import com.djatar.ardath.feature.presentation.auth.signup.SignUpScreen
 import com.djatar.ardath.feature.presentation.chatview.ChatViewScreen
@@ -39,6 +39,7 @@ import com.djatar.ardath.feature.presentation.common.ChatsScreen
 import com.djatar.ardath.feature.presentation.profile.ProfileScreen
 import com.djatar.ardath.feature.presentation.utils.CHAT_USER_ID
 import com.djatar.ardath.feature.presentation.utils.IS_CHAT_ON
+import com.djatar.ardath.feature.presentation.utils.NotificationUtil
 import com.djatar.ardath.feature.presentation.utils.PreferenceUtil
 import com.djatar.ardath.feature.presentation.utils.PreferenceUtil.updateString
 import com.google.firebase.Firebase
@@ -70,6 +71,7 @@ fun AppEntry(
     }
 
     val chatViewModel = hiltViewModel<ChatViewModel>()
+    val authViewModel = hiltViewModel<AuthViewModel>()
 
     LaunchedEffect(backStackEntry) {
         backStackEntry?.destination?.route?.let {
@@ -99,16 +101,16 @@ fun AppEntry(
         ) {
             animatedComposable(Screen.SignInScreen()) {
                 SignInScreen(
+                    viewModel = authViewModel,
                     paddingValues = paddingValues,
                     onNavigateToRegisterScreen = { navController.navigate(Screen.SignUpScreen()) },
-                    onSignInSuccess = {}
                 )
             }
             animatedComposable(Screen.SignUpScreen()) {
                 SignUpScreen(
+                    viewModel = authViewModel,
                     paddingValues = paddingValues,
-                    onNavigateToLoginScreen = { navController.popBackStack() },
-                    onSignUpSuccess = {}
+                    onNavigateToLoginScreen = { navController.popBackStack() }
                 )
             }
             animatedComposable(Screen.ChatsScreen()) {
@@ -127,7 +129,7 @@ fun AppEntry(
                     onLoadMore = { batchSize -> viewModel.loadChats(batchSize) },
                     onNavigateToChatView = { navController.navigate(it) },
                     onNavigateToProfile = { navController.navigate(it) },
-                    onLogout = { Firebase.auth.signOut() }
+                    onLogout = { authViewModel.signOut() }
                 )
             }
             animatedComposable(
