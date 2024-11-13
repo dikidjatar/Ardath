@@ -18,5 +18,8 @@ sealed class Screen(val route: String) {
     data object SignInScreen : Screen("signin_screen")
     data object SignUpScreen : Screen("signup_screen")
 
+    data object Settings : Screen("settings")
+    data object SettingsScreen : Screen("settings_screen")
+
     operator fun invoke() = route
 }

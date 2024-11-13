@@ -86,6 +86,7 @@ fun ChatsScreen(
     onLoadMore: (batchSize: Int) -> Unit = {},
     onNavigateToChatView: (route: String) -> Unit,
     onNavigateToProfile: (route: String) -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
     onLogout: () -> Unit,
 ) {
     val state by chatState.collectAsStateWithLifecycle()
@@ -146,12 +147,18 @@ fun ChatsScreen(
                         DropdownMenuItem(
                             text = { Text(text = stringResource(R.string.settings)) },
                             leadingIcon = { Icon(imageVector = Icons.Outlined.Settings, contentDescription = null) },
-                            onClick = {}
+                            onClick = {
+                                expanded = false
+                                onNavigateToSettings()
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text(text = stringResource(R.string.logout, Firebase.auth.currentUser?.displayName ?: "")) },
                             leadingIcon = { Icon(imageVector = Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
-                            onClick = onLogout
+                            onClick = {
+                                expanded = false
+                                onLogout()
+                            }
                         )
                     }
 

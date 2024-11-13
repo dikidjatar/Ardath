@@ -21,12 +21,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.djatar.ardath.core.presentation.common.animatedComposable
 import com.djatar.ardath.core.presentation.components.utils.Screen
@@ -37,6 +40,7 @@ import com.djatar.ardath.feature.presentation.chatview.ChatViewScreen
 import com.djatar.ardath.feature.presentation.common.ChatViewModel
 import com.djatar.ardath.feature.presentation.common.ChatsScreen
 import com.djatar.ardath.feature.presentation.profile.ProfileScreen
+import com.djatar.ardath.feature.presentation.settings.SettingsScreen
 import com.djatar.ardath.feature.presentation.utils.CHAT_USER_ID
 import com.djatar.ardath.feature.presentation.utils.IS_CHAT_ON
 import com.djatar.ardath.feature.presentation.utils.NotificationUtil
@@ -90,6 +94,14 @@ fun AppEntry(
         }
     }
 
+    val onBackPressed: () -> Unit = {
+        with(navController) {
+            if (currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                popBackStack()
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -110,7 +122,7 @@ fun AppEntry(
                 SignUpScreen(
                     viewModel = authViewModel,
                     paddingValues = paddingValues,
-                    onNavigateToLoginScreen = { navController.popBackStack() }
+                    onNavigateToLoginScreen = onBackPressed
                 )
             }
             animatedComposable(Screen.ChatsScreen()) {
@@ -129,6 +141,11 @@ fun AppEntry(
                     onLoadMore = { batchSize -> viewModel.loadChats(batchSize) },
                     onNavigateToChatView = { navController.navigate(it) },
                     onNavigateToProfile = { navController.navigate(it) },
+                    onNavigateToSettings = {
+                        navController.navigate(Screen.Settings()) {
+                            launchSingleTop = true
+                        }
+                    },
                     onLogout = { authViewModel.signOut() }
                 )
             }
@@ -182,7 +199,7 @@ fun AppEntry(
                         viewModel.sendMessage(otherUserId, chatId, chatTitle, messageText)
                     },
                     onNavigateToProfile = { route -> navController.navigate(route) },
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = onBackPressed
                 )
             }
 
@@ -220,8 +237,30 @@ fun AppEntry(
                     paddingValues = paddingValues,
                     userId = userId,
                     isCurrentUser = remember { mutableStateOf(false) },
-                ) { navController.popBackStack() }
+                ) { onBackPressed() }
             }
+
+            settingsGraph(
+                navController = navController,
+                paddingValues = paddingValues,
+                onBackPressed = onBackPressed
+            )
+        }
+    }
+}
+
+fun NavGraphBuilder.settingsGraph(
+    navController: NavHostController,
+    paddingValues: PaddingValues,
+    onBackPressed: () -> Unit
+) {
+    navigation(startDestination = Screen.SettingsScreen(), route = Screen.Settings()) {
+        animatedComposable(Screen.SettingsScreen()) {
+            SettingsScreen(
+                navController = navController,
+                paddingValues = paddingValues,
+                onBackPressed = onBackPressed
+            )
         }
     }
 }
