@@ -114,6 +114,8 @@ dependencies {
 
     // key-value
     implementation(libs.mmkv)
+    // fuzzywuzzy
+    implementation(libs.fuzzywuzzy)
 
     // Material
     implementation(libs.androidx.material)
