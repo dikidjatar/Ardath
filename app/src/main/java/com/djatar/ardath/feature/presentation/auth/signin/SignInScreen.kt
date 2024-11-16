@@ -1,6 +1,5 @@
 package com.djatar.ardath.feature.presentation.auth.signin
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,11 +48,6 @@ fun SignInScreen(
 
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-
-    BackHandler {
-        viewModel.clearState()
-        onNavigateToRegisterScreen()
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(

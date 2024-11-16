@@ -28,6 +28,17 @@ class AuthViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun signInUser(email: String, password: String) = viewModelScope.launch {
+//        _state.value = when {
+//            email.isEmpty() -> AuthState.ErrorCode(AuthError.EMPTY_EMAIL)
+//            password.isEmpty() -> AuthState.ErrorCode(AuthError.EMPTY_PASSWORD)
+//            else -> try {
+//                AuthState.Loading
+//                repository.signInWithEmailAndPassword(email, password)?.let { AuthState.Nothing }
+//                    ?: AuthState.Error(context.getString(R.string.sign_in_failure))
+//            } catch (e: Exception) {
+//                AuthState.Error(getError(e))
+//            }
+//        }
         when {
             email.isEmpty() ->
                 _state.value = AuthState.ErrorCode(AuthError.EMPTY_EMAIL)
@@ -82,6 +93,7 @@ class AuthViewModel @Inject constructor(
 
     fun signOut() = viewModelScope.launch {
         try {
+            clearState()
             repository.signOut()
         } catch (e: Exception) {
             _state.value = AuthState.Error(getError(e))

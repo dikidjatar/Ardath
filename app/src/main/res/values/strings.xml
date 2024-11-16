@@ -17,7 +17,7 @@
     <string name="creating_account">Creating account</string>
     <string name="create_account_error">Failed create account</string>
     <string name="profile">Profile</string>
-    <string name="logout">Logout (%1$s)</string>
+    <string name="logout">Log Out</string>
     <string name="message">Message</string>
     <string name="fetching_message">Fetching messages</string>
     <string name="name">Name</string>
@@ -56,4 +56,19 @@
     <string name="confirm_password_error">Passwords do not match</string>
     <string name="empty_name_error">Name should not be empty</string>
     <string name="save_user_data_error">Failed to save user data</string>
+    <string name="edit_info">Edit Info</string>
+    <string name="setting_delete_account">Delete account</string>
+    <string name="setting_account">Account</string>
+    <string name="setting_email_desc">Tap to change email</string>
+    <string name="setting_username_desc">Username</string>
+    <string name="setting_chats">Chats</string>
+    <string name="setting_privacy">Privacy</string>
+    <string name="setting_language">Language</string>
+    <string name="label_name">Your name</string>
+    <string name="label_bio">Bio</string>
+    <string name="setting_username">Username</string>
+    <string name="set_username">Set username</string>
+    <string name="username_not_ok">This username is already taken</string>
+    <string name="username_ok">%1$s is available.</string>
+    <string name="checking_username">Checking username…</string>
 </resources>

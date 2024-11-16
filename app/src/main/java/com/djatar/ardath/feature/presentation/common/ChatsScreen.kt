@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Settings
@@ -65,8 +64,6 @@ import com.djatar.ardath.feature.presentation.chatview.components.ChatItem
 import com.djatar.ardath.feature.presentation.chatview.components.ChatItemLoader
 import com.djatar.ardath.feature.presentation.chatview.components.NewChatDialog
 import com.djatar.ardath.feature.presentation.common.components.EmptyChat
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -77,7 +74,7 @@ private const val TAG = "ChatScreen"
 @Composable
 fun ChatsScreen(
     chatViewModel: ChatViewModel,
-    chatState: StateFlow<ChatState>,
+    chatStateFlow: StateFlow<ChatState>,
     paddingValues: PaddingValues,
     isScrolling: MutableState<Boolean>,
     selectionState: MutableState<Boolean>,
@@ -86,10 +83,9 @@ fun ChatsScreen(
     onLoadMore: (batchSize: Int) -> Unit = {},
     onNavigateToChatView: (route: String) -> Unit,
     onNavigateToProfile: (route: String) -> Unit = {},
-    onNavigateToSettings: () -> Unit = {},
-    onLogout: () -> Unit,
+    onNavigateToSettings: () -> Unit = {}
 ) {
-    val state by chatState.collectAsStateWithLifecycle()
+    val chatState by chatStateFlow.collectAsStateWithLifecycle()
 
     var showNewChatDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -152,14 +148,6 @@ fun ChatsScreen(
                                 onNavigateToSettings()
                             }
                         )
-                        DropdownMenuItem(
-                            text = { Text(text = stringResource(R.string.logout, Firebase.auth.currentUser?.displayName ?: "")) },
-                            leadingIcon = { Icon(imageVector = Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
-                            onClick = {
-                                expanded = false
-                                onLogout()
-                            }
-                        )
                     }
 
                     if (selectionState.value) {
@@ -200,7 +188,7 @@ fun ChatsScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            if (!state.isLoading && state.chats.isEmpty()) {
+            if (!chatState.isLoading && chatState.chats.isEmpty()) {
                 EmptyChat()
             } else {
                 LazyColumn(
@@ -210,7 +198,10 @@ fun ChatsScreen(
                         .padding(bottom = if (!isScrolling.value) paddingValues.calculateBottomPadding() + 70.dp else 0.dp),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    items(state.chats) { chatItem ->
+                    items(
+                        items = chatState.chats,
+                        key = { chat -> chat.id }
+                    ) { chatItem ->
                         ChatItem(
                             isLoading = false,
                             chat = chatItem,
@@ -222,19 +213,19 @@ fun ChatsScreen(
                                     val params = "?userId=${chat.userId}&chatId=${chat.id}&title=${chat.title}"
                                     onNavigateToChatView(Screen.ChatViewScreen.route + params)
                                 } else {
-                                    toggleSelection(state.chats.indexOf(chat))
+                                    toggleSelection(chatState.chats.indexOf(chat))
                                 }
                             },
                             onLongClick = { chat ->
                                 hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                toggleSelection(state.chats.indexOf(chat))
+                                toggleSelection(chatState.chats.indexOf(chat))
                             },
                             onProfileClick = {
                                 onNavigateToProfile(Screen.ProfileScreen.route + "?userId=${chatItem.userId}")
                             }
                         )
                     }
-                    if (state.isLoading) {
+                    if (chatState.isLoading) {
                         items(batchSize) { ChatItemLoader() }
                     }
                 }
@@ -245,7 +236,7 @@ fun ChatsScreen(
     NewChatDialog(
         showDialog = showNewChatDialog,
         viewModel = chatViewModel,
-        chatId = state.selectedChatId,
+        chatId = chatState.selectedChatId,
         onItemClick = onNavigateToChatView
     ) { showNewChatDialog = false }
 

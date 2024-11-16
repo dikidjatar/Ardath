@@ -140,6 +140,12 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    fun clear() {
+        lastVisibleChatKey = null
+        _chatState.value = ChatState()
+        clearSelection()
+    }
+
     companion object {
         private const val TAG = "ChatViewModel"
     }

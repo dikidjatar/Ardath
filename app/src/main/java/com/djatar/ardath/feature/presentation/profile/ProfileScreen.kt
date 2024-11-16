@@ -36,9 +36,7 @@ import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,35 +48,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import com.djatar.ardath.R
 import com.djatar.ardath.core.presentation.components.BackButton
 import com.djatar.ardath.feature.domain.models.User
-import com.djatar.ardath.ui.theme.ArdathTheme
+import com.djatar.ardath.feature.domain.models.UserState
 import com.djatar.ardath.feature.presentation.utils.FULL_DATE_FORMAT
 import com.djatar.ardath.feature.presentation.utils.getColor
 import com.djatar.ardath.feature.presentation.utils.getDate
+import com.djatar.ardath.ui.theme.ArdathTheme
 
 private const val TAG = "ProfilePage"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    paddingValues: PaddingValues,
-    userId: String,
+    state: UserState,
+    user: User?,
     isCurrentUser: MutableState<Boolean>,
+    onNavigateToEditProfile: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
-
-    val viewModel = hiltViewModel<UserViewModel>().also {
-        LaunchedEffect(userId) { it.getUserById(userId) }
-    }
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val user by viewModel.user.collectAsStateWithLifecycle()
 
     BackHandler(isCurrentUser.value) {
         onBack()
@@ -88,12 +80,14 @@ fun ProfileScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        text = user?.name ?: "",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold
+                    if (!state.isLoading && !user?.name.isNullOrEmpty()) {
+                        Text(
+                            text = user?.name ?: "",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold
+                            )
                         )
-                    )
+                    }
                 },
                 navigationIcon = {
                     if (!isCurrentUser.value) {
@@ -129,14 +123,24 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-                else -> item { UserProfile(user ?: User(name = "Unknown"), isCurrentUser) }
+                else -> item {
+                    UserProfile(
+                        user = user ?: User(name = "Unknown"),
+                        isCurrentUser = isCurrentUser,
+                        onNavigateToEditProfile = onNavigateToEditProfile
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun UserProfile(user: User, isCurrentUser: MutableState<Boolean>) {
+private fun UserProfile(
+    user: User,
+    isCurrentUser: MutableState<Boolean>,
+    onNavigateToEditProfile: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -169,7 +173,7 @@ private fun UserProfile(user: User, isCurrentUser: MutableState<Boolean>) {
         )
         if (isCurrentUser.value) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                ActionProfileButton(stringResource(R.string.edit_profile)) { }
+                ActionProfileButton(stringResource(R.string.edit_profile), onNavigateToEditProfile)
                 ActionProfileButton(stringResource(R.string.share_profile)) { }
             }
         } else {
@@ -262,7 +266,7 @@ private fun BoxScope.AddIcon(onClick: () -> Unit = {}) {
 private fun UserProfilePreview() {
     ArdathTheme {
         val currentUser = remember { mutableStateOf(true) }
-        UserProfile(User(name = "User Name", username = "UserName.zd2kl22"), currentUser)
+        UserProfile(User(name = "User Name", username = "UserName.zd2kl22"), currentUser) {}
     }
 }
 

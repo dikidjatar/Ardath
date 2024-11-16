@@ -23,8 +23,8 @@ object ToastUtil {
     }
 }
 
-fun Char.getColor(): Color {
-    return colorMap[this] ?: Color(0xFA6C61FF)
+fun Char?.getColor(): Color {
+    return colorMap[this] ?: Color(0xFA585858)
 }
 
 private val colorMap: Map<Char, Color> =

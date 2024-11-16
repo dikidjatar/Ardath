@@ -47,7 +47,7 @@ fun NewChatDialog(
         val userViewModel = hiltViewModel<UserViewModel>().also {
             it.getUsers()
         }
-        val state by userViewModel.state.collectAsState()
+        val state by userViewModel.userState.collectAsState()
 
         Dialog(
             onDismissRequest = onDismiss,

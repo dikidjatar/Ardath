@@ -70,12 +70,12 @@ fun MessageItem(
                             .padding(end = 8.dp)
                             .clip(CircleShape)
                             .clickable { onProfileClick() }
-                            .background(message.senderName.first().getColor())
+                            .background(message.senderName.firstOrNull().getColor())
                             .size(50.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = message.senderName.first().uppercase(),
+                            text = message.senderName.firstOrEmpty().uppercase(),
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp
                         )
@@ -138,6 +138,10 @@ fun MessageItem(
             }
         }
     }
+}
+
+fun String?.firstOrEmpty(): String {
+    return if (this.isNullOrEmpty()) "" else this.first().toString()
 }
 
 @Preview(showBackground = true)

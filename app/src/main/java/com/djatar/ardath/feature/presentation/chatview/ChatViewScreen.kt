@@ -117,7 +117,10 @@ fun ChatViewScreen(
                             )
                         }
                         else -> {
-                            items(messageState.messages) { message ->
+                            items(
+                                items = messageState.messages,
+                                key = { msg -> msg.id }
+                            ) { message ->
                                 MessageItem(
                                     message = message,
                                     isMe = message.senderId == Firebase.auth.currentUser?.uid,

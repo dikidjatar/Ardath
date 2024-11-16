@@ -39,8 +39,11 @@ import com.djatar.ardath.feature.presentation.auth.signup.SignUpScreen
 import com.djatar.ardath.feature.presentation.chatview.ChatViewScreen
 import com.djatar.ardath.feature.presentation.common.ChatViewModel
 import com.djatar.ardath.feature.presentation.common.ChatsScreen
+import com.djatar.ardath.feature.presentation.profile.EditProfileScreen
 import com.djatar.ardath.feature.presentation.profile.ProfileScreen
+import com.djatar.ardath.feature.presentation.profile.UserViewModel
 import com.djatar.ardath.feature.presentation.settings.SettingsScreen
+import com.djatar.ardath.feature.presentation.settings.account.UsernameScreen
 import com.djatar.ardath.feature.presentation.utils.CHAT_USER_ID
 import com.djatar.ardath.feature.presentation.utils.IS_CHAT_ON
 import com.djatar.ardath.feature.presentation.utils.NotificationUtil
@@ -76,6 +79,9 @@ fun AppEntry(
 
     val chatViewModel = hiltViewModel<ChatViewModel>()
     val authViewModel = hiltViewModel<AuthViewModel>()
+    val userViewModel = hiltViewModel<UserViewModel>().also {
+        LaunchedEffect(hasLogin.value) { it.getCurrentUser() }
+    }
 
     LaunchedEffect(backStackEntry) {
         backStackEntry?.destination?.route?.let {
@@ -100,6 +106,12 @@ fun AppEntry(
                 popBackStack()
             }
         }
+    }
+
+    fun signOut() {
+        chatViewModel.clear()
+        userViewModel.clear()
+        authViewModel.signOut()
     }
 
     Box(
@@ -132,7 +144,7 @@ fun AppEntry(
 
                 ChatsScreen(
                     chatViewModel = viewModel,
-                    chatState = viewModel.chatState,
+                    chatStateFlow = viewModel.chatState,
                     paddingValues = paddingValues,
                     isScrolling = isScrolling,
                     selectionState = viewModel.multiSelectState,
@@ -145,8 +157,7 @@ fun AppEntry(
                         navController.navigate(Screen.Settings()) {
                             launchSingleTop = true
                         }
-                    },
-                    onLogout = { authViewModel.signOut() }
+                    }
                 )
             }
             animatedComposable(
@@ -204,12 +215,16 @@ fun AppEntry(
             }
 
             animatedComposable(Screen.ProfileScreen()) { backStackEntry ->
-                val myUserId = remember(backStackEntry) { Firebase.auth.currentUser?.uid }!!
+
+                val state by userViewModel.userState.collectAsStateWithLifecycle()
 
                 ProfileScreen(
-                    paddingValues = paddingValues,
-                    userId = myUserId,
+                    state = state,
+                    user = state.currentUser,
                     isCurrentUser = remember { mutableStateOf(true) },
+                    onNavigateToEditProfile = {
+                        navController.navigate(Screen.EditProfileScreen())
+                    }
                 ) {
                     navController.navigate(Screen.ChatsScreen()) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -230,12 +245,15 @@ fun AppEntry(
                 )
             ) { backStackEntry ->
                 val userId = remember(backStackEntry) {
-                    backStackEntry.arguments?.getString("userId")!!
+                    backStackEntry.arguments?.getString("userId") ?: ""
                 }
 
+                LaunchedEffect(userId) { userViewModel.getUserById(userId) }
+                val state by userViewModel.userState.collectAsStateWithLifecycle()
+
                 ProfileScreen(
-                    paddingValues = paddingValues,
-                    userId = userId,
+                    state = state,
+                    user = state.user,
                     isCurrentUser = remember { mutableStateOf(false) },
                 ) { onBackPressed() }
             }
@@ -243,6 +261,8 @@ fun AppEntry(
             settingsGraph(
                 navController = navController,
                 paddingValues = paddingValues,
+                userViewModel = userViewModel,
+                onLogout = { signOut() },
                 onBackPressed = onBackPressed
             )
         }
@@ -252,6 +272,8 @@ fun AppEntry(
 fun NavGraphBuilder.settingsGraph(
     navController: NavHostController,
     paddingValues: PaddingValues,
+    userViewModel: UserViewModel,
+    onLogout: () -> Unit,
     onBackPressed: () -> Unit
 ) {
     navigation(startDestination = Screen.SettingsScreen(), route = Screen.Settings()) {
@@ -259,6 +281,23 @@ fun NavGraphBuilder.settingsGraph(
             SettingsScreen(
                 navController = navController,
                 paddingValues = paddingValues,
+                userViewModel = userViewModel,
+                onLogout = onLogout,
+                onBackPressed = onBackPressed
+            )
+        }
+
+        animatedComposable(Screen.EditProfileScreen()) {
+            EditProfileScreen(
+                userViewModel = userViewModel,
+                paddingValues = paddingValues,
+                onBackPressed = onBackPressed
+            )
+        }
+
+        animatedComposable(Screen.UsernameScreen()) {
+            UsernameScreen(
+                userViewModel = userViewModel,
                 onBackPressed = onBackPressed
             )
         }
