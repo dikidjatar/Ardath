@@ -56,6 +56,12 @@ android {
             isDebuggable = true
             isShrinkResources = false
         }
+
+        create("clone") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".clone"
+            versionNameSuffix = "-clone"
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
