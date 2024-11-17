@@ -29,7 +29,8 @@ class MessageListener(
                 if (message.senderId != currentUserId) {
                     if (message.status != MessageStatus.READ.name) {
                         val updateStatus = hashMapOf<String, Any>(
-                            "/messages/$chatId/${message.senderId}/${message.id}/status" to MessageStatus.READ.name
+                            "/messages/$chatId/${message.senderId}/${message.id}/status" to MessageStatus.READ.name,
+                            "/messages/$chatId/${currentUserId}/${message.id}/status" to MessageStatus.READ.name
                         )
                         updates.putAll(updateStatus)
                     }
