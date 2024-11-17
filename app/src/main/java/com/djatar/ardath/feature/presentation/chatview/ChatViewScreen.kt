@@ -25,21 +25,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.djatar.ardath.R
 import com.djatar.ardath.core.presentation.components.utils.Screen
+import com.djatar.ardath.feature.domain.models.MessageItem
 import com.djatar.ardath.feature.domain.models.MessageState
 import com.djatar.ardath.feature.presentation.chatview.components.EmptyMessage
 import com.djatar.ardath.feature.presentation.chatview.components.MessageInputContainer
-import com.djatar.ardath.feature.presentation.chatview.components.MessageItem
+import com.djatar.ardath.feature.presentation.chatview.components.MessageItemContent
+import com.djatar.ardath.feature.presentation.chatview.components.MessageItemHeader
 import com.djatar.ardath.feature.presentation.common.ChatViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.flow.StateFlow
 
 private const val TAG = "ChatScreen"
 
@@ -47,7 +52,7 @@ private const val TAG = "ChatScreen"
 @Composable
 fun ChatViewScreen(
     chatViewModel: ChatViewModel,
-    messageState: MessageState,
+    messageState: StateFlow<MessageState>,
     title: String = "",
     paddingValues: PaddingValues,
     onSendMessage: (chatTitle: String, messageText: String) -> Unit,
@@ -55,14 +60,15 @@ fun ChatViewScreen(
     onNavigateBack: () -> Unit = {}
 ) {
 
-    val messageText = rememberSaveable { mutableStateOf("") }
+    val state by messageState.collectAsStateWithLifecycle()
 
+    val messageText = rememberSaveable { mutableStateOf("") }
     val lazyListState = rememberLazyListState()
 
-    LaunchedEffect(messageState) {
+    LaunchedEffect(state) {
         lazyListState.apply {
-            if (messageState.messages.isNotEmpty()) {
-                scrollToItem(messageState.messages.lastIndex)
+            if (state.messages.isNotEmpty()) {
+                scrollToItem(state.messages.lastIndex)
             }
         }
     }
@@ -95,7 +101,7 @@ fun ChatViewScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            if (!messageState.isLoading && messageState.messages.isEmpty()) {
+            if (!state.isLoading && state.messages.isEmpty()) {
                 EmptyMessage()
             } else {
                 LazyColumn(
@@ -106,10 +112,10 @@ fun ChatViewScreen(
                     state = lazyListState
                 ) {
                     when {
-                        messageState.isLoading -> item {
+                        state.isLoading -> item {
                             LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), gapSize = 100.dp)
                         }
-                        !messageState.error.isNullOrEmpty() -> item {
+                        !state.error.isNullOrEmpty() -> item {
                             Text(
                                 text = stringResource(R.string.fetching_message_error),
                                 style = MaterialTheme.typography.bodyLarge,
@@ -118,16 +124,21 @@ fun ChatViewScreen(
                         }
                         else -> {
                             items(
-                                items = messageState.messages,
-                                key = { msg -> msg.id }
-                            ) { message ->
-                                MessageItem(
-                                    message = message,
-                                    isMe = message.senderId == Firebase.auth.currentUser?.uid,
-                                    onProfileClick = {
-                                        onNavigateToProfile(Screen.ProfileScreen.route + "?userId=${message.senderId}")
-                                    }
-                                )
+                                items = state.mappedMessage,
+                                key = { item -> item.key },
+                                contentType = { item -> item.key.startsWith("chat_") },
+                            ) { item ->
+                                if (item is MessageItem.Header) {
+                                    MessageItemHeader(item.text)
+                                } else if (item is MessageItem.MessageViewItem) {
+                                    MessageItemContent(
+                                        message = item.message,
+                                        isMe = item.message.senderId == Firebase.auth.currentUser?.uid,
+                                        onProfileClick = {
+                                            onNavigateToProfile(Screen.ProfileScreen.route + "?userId=${item.message.senderId}")
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

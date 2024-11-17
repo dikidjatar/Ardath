@@ -187,7 +187,6 @@ fun AppEntry(
                 val viewModel = chatViewModel.also {
                      LaunchedEffect(Unit) { it.listenForMessages(chatId) }
                 }
-                val chatState by viewModel.chatState.collectAsStateWithLifecycle()
 
                 DisposableEffect(otherUserId) {
                     NotificationUtil.cancelNotification(otherUserId.hashCode())
@@ -203,7 +202,7 @@ fun AppEntry(
 
                 ChatViewScreen(
                     chatViewModel = viewModel,
-                    messageState = chatState.messages,
+                    messageState = viewModel.messageState,
                     title = title,
                     paddingValues = paddingValues,
                     onSendMessage = { chatTitle, messageText ->

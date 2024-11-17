@@ -85,7 +85,8 @@ interface ChatRepository {
         userId: String,
         chatId: String,
         senderName: String,
-        messageText: String
+        messageText: String,
+        imageUrl: String? = null
     )
 
     fun getAccessToken(): String

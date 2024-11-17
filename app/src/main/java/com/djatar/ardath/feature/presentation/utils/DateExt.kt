@@ -28,11 +28,11 @@ fun Long.getDate(
     val userDate = Calendar.getInstance(Locale.getDefault()).apply { timeInMillis = this@getDate }
     val daysDifference = (System.currentTimeMillis() - userDate.timeInMillis) / (1000 * 60 * 60 * 24)
 
-    val hour = DateFormat.format("hh:mm a", userDate).toString()
+    // val hour = DateFormat.format("hh:mm a", userDate).toString()
 
     return when (daysDifference.toInt()) {
-        0 -> if (currentDate.get(Calendar.DATE) != userDate.get(Calendar.DATE)) "$stringYesterday at $hour" else "$stringToday at $hour"
-        1 -> "$stringYesterday at $hour"
+        0 -> if (currentDate.get(Calendar.DATE) != userDate.get(Calendar.DATE)) stringYesterday else stringToday
+        1 -> stringYesterday
         in 2..5 -> DateFormat.format(weeklyFormat, userDate).toString()
         else -> if (currentDate.get(Calendar.YEAR) > userDate.get(Calendar.YEAR))
             DateFormat.format(extendedFormat, userDate).toString()

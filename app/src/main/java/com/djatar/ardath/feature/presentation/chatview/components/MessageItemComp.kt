@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +40,7 @@ import com.djatar.ardath.feature.presentation.utils.getDate
 import com.djatar.ardath.ui.theme.ArdathTheme
 
 @Composable
-fun MessageItem(
+fun MessageItemContent(
     message: Message,
     isMe: Boolean = false,
     onProfileClick: () -> Unit = {}
@@ -70,7 +70,11 @@ fun MessageItem(
                             .padding(end = 8.dp)
                             .clip(CircleShape)
                             .clickable { onProfileClick() }
-                            .background(message.senderName.firstOrNull().getColor())
+                            .background(
+                                message.senderName
+                                    .firstOrNull()
+                                    .getColor()
+                            )
                             .size(50.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -90,15 +94,6 @@ fun MessageItem(
                     .widthIn(min = 50.dp, max = 300.dp),
             ) {
                 Column {
-                    if (!isMe) {
-                        Text(
-                            text = message.senderName,
-                            style = MaterialTheme.typography.labelLarge,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
                     Text(
                         text = message.text.toString(),
                         style = MaterialTheme.typography.bodyLarge,
@@ -140,6 +135,17 @@ fun MessageItem(
     }
 }
 
+@Composable
+fun MessageItemHeader(text: String) {
+    Text(
+        modifier = Modifier.fillMaxWidth(),
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center
+    )
+}
+
 fun String?.firstOrEmpty(): String {
     return if (this.isNullOrEmpty()) "" else this.first().toString()
 }
@@ -148,7 +154,7 @@ fun String?.firstOrEmpty(): String {
 @Composable
 private fun MessageItemPreview() {
     ArdathTheme {
-        MessageItem(message = Message(
+        MessageItemContent(message = Message(
             senderName = "John Doe",
             text = "Hello, my name is John Doe".repeat(3),
         ))
@@ -159,7 +165,7 @@ private fun MessageItemPreview() {
 @Composable
 private fun MessageItemPreview2() {
     ArdathTheme {
-        MessageItem(message = Message(
+        MessageItemContent(message = Message(
             senderName = "John Doe",
             text = "Hello, my name is John Doe".repeat(1),
         ), isMe = true)

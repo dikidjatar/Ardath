@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.RingtoneManager
+import android.net.Uri
 import androidx.core.app.NotificationCompat
 import com.djatar.ardath.ArdathApp.Companion.context
 import com.djatar.ardath.R
@@ -28,7 +29,7 @@ object NotificationUtil {
     fun notifyForMessages(
         userName: String?,
         messageText: String?,
-        imageUrl: String? = null,
+        imageUrl: Uri? = null,
         pendingIntent: PendingIntent? = null,
         notificationId: Int
     ) {
@@ -42,8 +43,8 @@ object NotificationUtil {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        if (!imageUrl.isNullOrEmpty()) {
-            ImageUtils.getBitmapFromUrl(imageUrl)?.let {
+        if (imageUrl != null) {
+            ImageUtils.getBitmapFromUrl(imageUrl.toString())?.let {
                 builder.setStyle(
                     NotificationCompat.BigPictureStyle()
                         .bigPicture(it)

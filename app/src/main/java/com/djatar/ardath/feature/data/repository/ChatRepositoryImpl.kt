@@ -159,7 +159,8 @@ class ChatRepositoryImpl(
                         currentUserId,
                         chatId,
                         message.senderName,
-                        message.text ?: ""
+                        message.text ?: "",
+                        imageUrl = message.imageUrl
                     )
                 } else {
                     Log.e(TAG, "Failed to send message: ", task.exception)
@@ -218,7 +219,8 @@ class ChatRepositoryImpl(
         userId: String,
         chatId: String,
         senderName: String,
-        messageText: String
+        messageText: String,
+        imageUrl: String?
     ) {
         val fcmUrl = "https://fcm.googleapis.com/v1/projects/pedat-community-id/messages:send"
         val jsonBody = JSONObject().apply {
@@ -227,6 +229,7 @@ class ChatRepositoryImpl(
                 put("notification", JSONObject().apply {
                     put("title", senderName)
                     put("body", messageText)
+                    put("image", imageUrl)
                 })
                 put("data", JSONObject().apply {
                     put("userId", userId)

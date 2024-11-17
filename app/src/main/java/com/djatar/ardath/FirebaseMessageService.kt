@@ -29,7 +29,7 @@ class FirebaseMessageService : FirebaseMessagingService() {
                         NotificationUtil.notifyForMessages(
                             userName = msg.title,
                             messageText = msg.body,
-                            imageUrl = msg.imageUrl.toString(),
+                            imageUrl = msg.imageUrl,
                             notificationId = notificationId
                         )
                     }

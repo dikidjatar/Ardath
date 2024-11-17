@@ -11,7 +11,6 @@ import com.djatar.ardath.feature.domain.models.MessageState
 import com.djatar.ardath.feature.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -28,6 +27,9 @@ class ChatViewModel @Inject constructor(
 
     private val _chatState = MutableStateFlow(ChatState())
     val chatState = _chatState.asStateFlow()
+
+    private val _messageState = MutableStateFlow(MessageState())
+    val messageState = _messageState.asStateFlow()
 
     val multiSelectState = mutableStateOf(false)
     val selectedChatState = mutableStateListOf<Chat>()
@@ -107,26 +109,20 @@ class ChatViewModel @Inject constructor(
         imageUrl
     )
 
-    fun listenForMessages(chatId: String): Job? {
-        if (_chatState.value.messages.isLoading) return null
-        _chatState.value.apply {
-            messages = messages.copy(isLoading = true, error = "")
-        }
+    fun listenForMessages(chatId: String) {
+        if (_messageState.value.isLoading) return
+        _messageState.update { it.copy(isLoading = true, error = null) }
 
-        return viewModelScope.launch {
-            repository.listenForMessages(chatId).collectLatest { resource ->
-                _chatState.update {
+        viewModelScope.launch {
+            repository.listenForMessages(chatId)
+                .distinctUntilChanged()
+                .collectLatest { resource ->
+                _messageState.update {
                     when (resource) {
-                        is Resource.Error -> it.copy(messages = MessageState(
-                            isLoading = false,
-                            messages = resource.data ?: emptyList()),
-                            error = resource.message
-                        )
+                        is Resource.Error ->
+                            it.copy(isLoading = false, error = resource.message)
                         is Resource.Success -> {
-                            it.copy(messages = MessageState(
-                                isLoading = false,
-                                messages = resource.data ?: emptyList())
-                            )
+                            it.copyWithMessages(resource.data ?: emptyList())
                         }
                     }
                 }
