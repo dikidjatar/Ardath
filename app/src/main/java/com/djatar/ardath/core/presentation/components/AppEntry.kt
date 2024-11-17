@@ -213,7 +213,7 @@ fun AppEntry(
                 )
             }
 
-            animatedComposable(Screen.ProfileScreen()) { backStackEntry ->
+            animatedComposable(Screen.ProfileScreen()) {
 
                 val state by userViewModel.userState.collectAsStateWithLifecycle()
 

@@ -61,6 +61,7 @@ android {
             initWith(getByName("debug"))
             applicationIdSuffix = ".clone"
             versionNameSuffix = "-clone"
+            resValue("string", "app_name", "Ardath Clone")
         }
     }
     compileOptions {
